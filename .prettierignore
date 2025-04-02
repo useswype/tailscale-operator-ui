@@ -1,0 +1,13 @@
+.next
+.vscode
+lib/generated/**
+next.config.js
+postcss.config.js
+next-env.d.ts
+public/**
+styles/**
+Dockerfile
+README.md
+sonar-project.properties
+*.tsbuildinfo
+next_dashboard.code-workspace

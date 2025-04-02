@@ -1,0 +1,74 @@
+# WARNING: This is provided as an example only. Use at your own risk.
+
+apiVersion: skaffold/v4beta12
+kind: Config
+metadata:
+  name: tailscale-ingress-ui
+
+build:
+  platforms:
+    - linux/amd64
+
+  artifacts:
+    - image: useswype/tailscale-ingress-ui
+      context: .
+      docker:
+        dockerfile: Dockerfile
+
+  tagPolicy:
+    sha256: {}
+
+  local:
+    push: true
+
+manifests:
+  rawYaml:
+    - kubernetes/deployment.yaml
+
+deploy:
+  kubectl: {}
+  kubeContext: staging
+
+portForward:
+  - resourceType: deployment
+    resourceName: tailscale-ingress-ui
+    port: 3000
+    localPort: 3000
+
+profiles:
+  - name: dev
+    activation:
+      - command: dev
+
+    build:
+      artifacts:
+        - image: useswype/tailscale-ingress-ui
+          context: .
+
+      tagPolicy:
+        sha256: {}
+
+      local:
+        push: true
+
+    deploy:
+      kubectl: {}
+
+    portForward:
+      - resourceType: deployment
+        resourceName: tailscale-ingress-ui
+        port: 3000
+        localPort: 3000
+
+  - name: prod
+
+    build:
+      artifacts:
+        - image: useswype/tailscale-ingress-ui
+          context: .
+      tagPolicy:
+        sha256: {}
+      local:
+        push: true
+    deploy:
+      kubectl: {}

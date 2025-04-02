@@ -1,0 +1,83 @@
+# WARNING: This is a basic kubernetes deployment example. This is not production ready, use at own risk.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tailscale-ingress-ui
+  namespace: default
+  labels:
+    app: tailscale-ingress-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tailscale-ingress-ui
+  template:
+    metadata:
+      labels:
+        app: tailscale-ingress-ui
+    spec:
+      serviceAccountName: tailscale-ingress-ui
+
+      containers:
+        - name: tailscale-ingress-ui
+          image: useswype/tailscale-ingress-ui:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+              name: web
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tailscale-ingress-ui
+  namespace: default
+  labels:
+    app: tailscale-ingress-ui
+spec:
+  selector:
+    app: tailscale-ingress-ui
+  ports:
+    - port: 80
+      targetPort: web
+      protocol: TCP
+      name: http
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tailscale-ingress-ui
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tailscale-ingress-ui
+rules:
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["services", "namespaces"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tailscale-ingress-ui
+subjects:
+  - kind: ServiceAccount
+    name: tailscale-ingress-ui
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: tailscale-ingress-ui
+  apiGroup: rbac.authorization.k8s.io
